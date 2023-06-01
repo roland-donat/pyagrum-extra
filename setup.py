@@ -1,10 +1,10 @@
-"""pyar3 Setup"""
+"""pyagrum-extra Setup"""
 
 from setuptools import setup, find_packages
 
 VERSION = "0.0.1"
 
-setup(name='pyagrum-extra',
+setup(name='pyagrum_extra',
       version=VERSION,
       url='https://github.com/roland-donat/pyagrum-extra',
       author='Roland Donat',
