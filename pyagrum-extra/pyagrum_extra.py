@@ -265,11 +265,8 @@ def fit_cpt(bn, df, var_name,
     if verbose_mode:
         sys.stdout.write("- Learn CPT {0}\n".format(var_name))
 
-    domains = [bn.variable(vn).domainSize()
-               for vn in bn.cpt(var_name).var_names]
-
-    parents = list(bn.cpt(var_name).var_names)
-    parents.pop()
+    parents = list(bn.cpt(var_name).names)
+    parents.pop(0)
 
     # Check if df consists of catagorical variables only
     for data_s in df[[var_name] + parents].columns:
@@ -280,11 +277,14 @@ def fit_cpt(bn, df, var_name,
 
     # Warning : df variables must be categorical here if not unobserved but possible configurations will be dropped
     # and then lead to unconsistent CPT
-    joint_counts = np.array(pd.crosstab(
-        df[var_name], [df[parent] for parent in parents], dropna=False), dtype=float)
+    if len(parents) == 0:
+        joint_counts = np.array(df[var_name].value_counts().loc[df[var_name].cat.categories], dtype=float)
+    else:   
+        joint_counts = np.array(pd.crosstab(
+            df[var_name], [df[parent] for parent in parents], dropna=False), dtype=float)
+        dff = pd.crosstab(df[var_name], [df[parent] for parent in parents], dropna=False)
 
     cond_counts = joint_counts.sum(axis=0)
-
     # if cond_counts is monodimensionnal then cond_counts will be a float and not a Series
     # if type(cond_counts) == pd.core.series.Series:
     #     cond_counts = cond_counts.apply(np.float32)
@@ -338,8 +338,11 @@ def fit_cpt(bn, df, var_name,
     # Normalization of counts to get a consistent CPT
     # Note: np.nan_to_num is used only in the case where no apriori is requested to force nan value to 0
     #       => this is of course highly unsafe to work in this situation as CPTs may not sum to 1 for all configurations
+    cpt_shape = [bn.variable(vn).domainSize()
+                 for vn in bn.cpt(var_name).names]
+    cpt_shape.reverse()
     bn.cpt(var_name)[:] = np.nan_to_num(
-        (joint_counts/cond_counts).transpose().reshape(*domains))
+        (joint_counts/cond_counts).transpose().reshape(*cpt_shape))
 
 
 gum.BayesNet.fit_cpt = fit_cpt
