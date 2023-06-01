@@ -456,7 +456,7 @@ def predict(bn, data, var_target, returns="map", show_progress=False, debug=Fals
     target_size = bn.variable(var_target).domainSize()
     target_dom = np.array([bn.variable(var_target).label(i)
                            for i in range(target_size)])
-    data_records = data.to_dict("record")
+    data_records = data.to_dict("records")
     post_prob = np.zeros((nb_data, target_size))
     for i in range(nb_data):
         if debug:
